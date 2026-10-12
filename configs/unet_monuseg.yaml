@@ -1,0 +1,48 @@
+# NucleiQuant — U-Net baseline on MoNuSeg
+# Override any key from the CLI:  python scripts/train.py --config configs/unet_monuseg.yaml --set train.epochs=5
+
+experiment: unet_monuseg_baseline
+seed: 42
+device: auto            # auto | cuda | mps | cpu
+
+data:
+  processed_dir: data/processed/monuseg
+  train_split: train
+  val_split: test        # MoNuSeg ships an official test set; we validate on it
+  patch_size: 256
+  patches_per_image: 8   # random crops sampled from each training image per epoch
+  num_workers: 0         # keep 0 on macOS/MPS; raise to 4-8 on Linux
+  # Targets: channel 0 = nucleus foreground, channel 1 = nucleus boundary.
+  # The boundary channel is what lets watershed split touching nuclei.
+  boundary_width: 2
+
+model:
+  name: unet
+  in_channels: 3
+  out_channels: 2
+  base_channels: 32      # 32 trains comfortably on an M-series Mac; 64 for GPU
+  depth: 4
+  dropout: 0.1
+
+loss:
+  bce_weight: 1.0
+  dice_weight: 1.0
+  boundary_channel_weight: 2.0   # boundary pixels are rare -> upweight that channel
+
+train:
+  epochs: 40
+  batch_size: 8
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  amp: true              # mixed precision; auto-disabled on MPS/CPU
+  early_stopping_patience: 10
+  checkpoint_dir: outputs/checkpoints
+
+postprocess:
+  fg_threshold: 0.5
+  boundary_threshold: 0.5
+  min_nucleus_area: 20   # pixels; drops dust/artifacts
+  min_distance: 5        # peak_local_max distance for watershed seeds
+
+quantify:
+  microns_per_pixel: 0.25   # MoNuSeg is 40x; set null to report pixels only

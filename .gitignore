@@ -1,0 +1,29 @@
+# Data & artifacts (large, regenerable)
+data/raw/
+data/processed/
+outputs/
+*.pth
+*.pt
+*.ckpt
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Figures/results are tracked; app temp file is not
+outputs/_tmp_gt.xml
